@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knight HP Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>🗡️ Hiệp Sĩ Rồng 🛡️</h1>
+        
+        <div class="hp-box">
+            <p>Sinh lực: <span id="hp-text">100</span> / 100</p>
+            <div class="hp-bar-container">
+                <div id="hp-bar-fill"></div>
+            </div>
+            <p id="status-effect" class="hidden">🤢 Đang trúng độc (-5 HP/s)</p>
+        </div>
+
+        <div class="controls">
+            <button id="btn-attack">⚔️ Nhận Sát Thương (-15)</button>
+            <button id="btn-heal">🧪 Uống Bình Máu (+20 & Giải Độc)</button>
+            <button id="btn-poison">☠️ Trúng Độc (-5/s)</button>
+        </div>
+
+        <h2 id="game-over-text" class="hidden">💀 GAME OVER 💀</h2>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
