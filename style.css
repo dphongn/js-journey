@@ -8,7 +8,11 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    
+    min-height: 100vh; 
+    
+    /* THÊM DÒNG NÀY: Tạo khoảng cách trên dưới khi cuộn trang */
+    padding: 40px 0;
 }
 
 #game-container {
@@ -82,4 +86,86 @@ button:disabled {
 .active-simulated {
     transform: scale(0.95);
     background-color: #dcdde1;
+}
+/* Style cho từng dòng nhiệm vụ */
+.quest-item {
+    background-color: #34495e;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    cursor: pointer; /* Biến con trỏ thành hình bàn tay để báo hiệu có thể click */
+    border-left: 4px solid #e74c3c; /* Viền đỏ: Chưa làm */
+
+    display: flex;
+    justify-content: space-between; /* Đẩy chữ sang trái kịch kim, nút X sang phải kịch kim */
+    align-items: center;
+}
+
+/* Class này sẽ được JS chèn vào khi click hoàn thành */
+.quest-item.completed span {
+    text-decoration: line-through;
+    color: #7f8c8d;
+}
+.quest-item.completed {
+    border-left-color: #2ecc71; /* Viền chuyển xanh lá: Đã xong */
+}
+/* Lớp phủ nền mờ toàn màn hình */
+.modal {
+    display: none; /* Mặc định ẩn */
+    position: fixed; 
+    z-index: 1000; /* Nằm đè lên trên tất cả mọi thứ */
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0, 0, 0, 0.7); /* Màu đen mờ 70% */
+}
+
+/* Khung nội dung chính ở giữa màn hình */
+.modal-content {
+    background-color: #2c3e50;
+    margin: 15% auto; /* Cách phía trên 15% và căn giữa ngang */
+    padding: 20px;
+    border: 2px solid #f1c40f;
+    width: 320px; /* Độ rộng vừa vặn */
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    animation: animatetop 0.4s; /* Hiệu ứng bay từ trên xuống */
+}
+
+/* Hiệu ứng mượt mà khi Modal xuất hiện */
+@keyframes animatetop {
+    from { top: -300px; opacity: 0; }
+    to { top: 0; opacity: 1; }
+}
+
+/* Nút đóng (X) */
+.close-modal {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.close-modal:hover,
+.close-modal:focus {
+    color: #f1c40f;
+    text-decoration: none;
+}
+
+/* Style báo lỗi cho các ô input */
+.input-error {
+    border: 2px solid #ff7675 !important;
+    background-color: #ffcccc !important;
+    color: #2c3e50 !important;
+}
+
+.input-success {
+    border: 2px solid #2ecc71 !important;
+    background-color: #e2fbe8 !important;
+    color: #2c3e50 !important;
 }

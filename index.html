@@ -20,19 +20,79 @@
 
         <div class="controls">
             <button id="btn-attack">⚔️ Nhận Sát Thương (-15)</button>
-            <p id="skill-desc" style="color: #f39c12; height: 20px; margin-top: 10px; font-style: italic;"></p>
             <button id="btn-heal">🧪 Uống Bình Máu (+20 & Giải Độc)</button>
-            <p id="skill-desc" style="color: #f39c12; height: 20px; margin-top: 10px; font-style: italic;"></p>
             <button id="btn-poison">☠️ Trúng Độc (-5/s)</button>
+            
             <p id="skill-desc" style="color: #f39c12; height: 20px; margin-top: 10px; font-style: italic;"></p>
+        </div>
+
+        <div style="background: #1e272e; padding: 10px; border-radius: 5px; height: 120px; overflow-y: auto; margin-top: 15px;">
+            <ul id="battle-log" style="list-style-type: none; text-align: left; font-size: 14px; margin: 0; padding: 0;">
+                <li style="color: #f1c40f;">Trận chiến bắt đầu!</li>
+            </ul>
         </div>
 
         <div style="margin-top: 15px;">
             <label>Niệm chú: </label>
             <input type="text" id="spell-input" placeholder="Gõ FIREBALL...">
         </div>        
+        
+        <hr style="margin: 20px 0; border-color: #7f8c8d;">
+        
+        <div style="background-color: #2c3e50; padding: 15px; border-radius: 5px; border: 2px solid #3498db; text-align: left; margin-bottom: 20px;">
+            <h3 style="color: #3498db; margin-bottom: 10px; text-align: center;">🛡️ Đăng Ký Danh Tính Hiệp Sĩ</h3>
+            
+            <form id="register-form" novalidate> <div style="margin-bottom: 10px;">
+                    <label style="display: block; font-size: 14px;">Tên hiệp sĩ:</label>
+                    <input type="text" id="reg-name" placeholder="Ví dụ: Arthur" style="width: 100%; padding: 5px; margin-top: 3px;">
+                    <span id="err-name" style="color: #ff7675; font-size: 12px; display: block; margin-top: 2px; height: 15px;"></span>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; font-size: 14px;">Email nhận tin:</label>
+                    <input type="email" id="reg-email" placeholder="arthur@gmail.com" style="width: 100%; padding: 5px; margin-top: 3px;">
+                    <span id="err-email" style="color: #ff7675; font-size: 12px; display: block; margin-top: 2px; height: 15px;"></span>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 14px;">Mã mật đạo (Chữ & số, >= 6 ký tự):</label>
+                    <input type="password" id="reg-code" placeholder="••••••" style="width: 100%; padding: 5px; margin-top: 3px;">
+                    <span id="err-code" style="color: #ff7675; font-size: 12px; display: block; margin-top: 2px; height: 15px;"></span>
+                </div>
+
+                <button type="submit" style="background-color: #3498db; color: white; width: 100%; margin: 0;">Khắc Tên Lên Bia Đá (+100 HP)</button>
+            </form>
+        </div>
+
+        <div style="background-color: #2c3e50; padding: 15px; border-radius: 5px; border: 2px solid #f1c40f;">
+            <h3 style="color: #f1c40f; margin-bottom: 10px;">📜 Bảng Nhiệm Vụ</h3>
+            
+            <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+                <input type="text" id="quest-input" placeholder="Ví dụ: Tiêu diệt 3 con Slime..." style="flex: 1; padding: 5px;">
+                <button id="btn-add-quest" style="background-color: #27ae60; color: white;">Nhận</button>
+            </div>
+
+            <ul id="quest-list" style="list-style-type: none; text-align: left; padding: 0;">
+            </ul>
+        </div>
 
         <h2 id="game-over-text" class="hidden">💀 GAME OVER 💀</h2>
+    </div>
+    <div style="margin-top: 15px; text-align: center;">
+        <button id="btn-open-stats" style="background-color: #f1c40f; color: #2c3e50; width: 100%;">📊 Xem Chỉ Số Hiệp Sĩ</button>
+    </div>
+
+    <div id="stats-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span> <h2 style="color: #f1c40f; margin-bottom: 15px;">📊 Chỉ Số Hiệp Sĩ</h2>
+            <hr style="border-color: #7f8c8d; margin-bottom: 15px;">
+            <div style="text-align: left; font-size: 16px; line-height: 1.8;">
+                <p>❤️ Sinh lực hiện tại: <span id="stat-hp">100</span>/100</p>
+                <p>🤢 Trạng thái độc: <span id="stat-poison">Không</span></p>
+                <p>📜 Nhiệm vụ đã nhận: <span id="stat-quests-total">0</span></p>
+                <p>✅ Nhiệm vụ hoàn thành: <span id="stat-quests-done">0</span></p>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
