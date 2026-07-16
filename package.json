@@ -1,0 +1,22 @@
+{
+  "name": "counterproject",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dphongn/js-journey.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/dphongn/js-journey/issues"
+  },
+  "homepage": "https://github.com/dphongn/js-journey#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

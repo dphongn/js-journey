@@ -39,11 +39,31 @@ const regCode = document.getElementById("reg-code");
 const errName = document.getElementById("err-name");
 const errEmail = document.getElementById("err-email");
 const errCode = document.getElementById("err-code");
-
+const btnFetchMonster = document.getElementById("btn-fetch-monster");
 
 // ==========================================
 // 2. CÁC HÀM TIỆN ÍCH (Utilities)
 // ==========================================
+
+// Sự kiện click sẽ gọi API
+btnFetchMonster.addEventListener("click", function() {
+    // 1. Gửi HTTP GET Request lên Server của chính mình
+    fetch('/api/monster')
+        .then(response => response.json()) // 2. Ép dữ liệu trả về thành JSON
+        .then(data => {
+            // 3. Xử lý dữ liệu nhận được (data chính là object selectedMonster từ Server)
+            const questText = `Tiêu diệt ${data.name} (HP: ${data.hp} - Bậc: ${data.type})`;
+            
+            // Gọi hàm addQuest có sẵn để nhét vào danh sách nhiệm vụ
+            addQuest(questText);
+            writeLog(`Phát hiện quái vật mới từ Server: ${data.name}! 🦇`, "#a29bfe");
+        })
+        .catch(error => {
+            console.error("Lỗi kết nối Server:", error);
+            writeLog("Mất kết nối với máy chủ trinh sát!", "red");
+        });
+});
+
 function writeLog(text, color = "white") {
     if (!battleLog) {
         console.log(text); // An toàn nếu HTML chưa có thẻ battle-log
