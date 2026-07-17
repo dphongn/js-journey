@@ -1,7 +1,7 @@
 // ==========================================
 // 1. KHỞI TẠO STATE & DOM
 // ==========================================
-let quests = JSON.parse(localStorage.getItem('myQuests')) || [];
+let quests = []; // Mảng lưu trữ danh sách nhiệm vụ
 let hp = 100;
 const MAX_HP = 100;
 let isPoisoned = false;
@@ -129,44 +129,89 @@ function updateUI() {
 // ==========================================
 function addQuest(taskText) {
     const newQuest = {
-        id: Date.now(),
+        id: Date.now(), // Dùng timestamp làm ID duy nhất
         text: taskText,
         completed: false
     };
-    quests.push(newQuest);
-    saveAndRender(); // FIX 4: Đã thêm lệnh gọi render
+
+    fetch('/api/quests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newQuest)
+    })
+    .then(response => response.json())
+    .then(data => {
+        quests.push(data);
+        saveAndRender();
+    })
+    .catch(error => {
+        console.error("Lỗi khi thêm nhiệm vụ:", error);
+        writeLog("Không thể thêm nhiệm vụ!", "red");
+    });
 }
 
 function toggleQuest(id) {
-    const quest = quests.find(q => q.id === id);
-    if (quest) {
-        quest.completed = !quest.completed; 
-        
-        if (quest.completed) { // Đảm bảo chưa chết mới được hồi máu
+    fetch(`/api/quests/${id}`, {
+        method: 'PUT'
+    })
+    .then(response => response.json())
+    .then(updatedQuest => {
+        if (updatedQuest.completed) {
             if (hp > 0) {
-                hp += 10;
-                updateUI(); 
-                writeLog(`Hoàn thành: ${quest.text}. Hồi 10 HP! 💖`, "#2ecc71");
+                hp += 10; // Thưởng 10 HP khi hoàn thành nhiệm vụ
+                writeLog(`Hoàn thành nhiệm vụ! Nhận thưởng 10 HP ❤️`, "#2ecc71");
             }
-        }
-        else {
+        } else {
             if (hp > 0) {
                 hp -= 10;
-                updateUI();
-                writeLog(`Huỷ nhiệm vụ: ${quest.text}. Mất 10 HP! 💔`, "#e74c3c");
+                writeLog(`Nhiệm vụ bị hủy! Mất 10 HP 💔`, "#ff7675");
             }
         }
-    }
-    saveAndRender();
+
+        updateUI();
+        loadQuestsFromServer(); // Đồng bộ lại danh sách nhiệm vụ từ Server
+    })
+    .catch(error => {
+        console.error("Lỗi khi cập nhật nhiệm vụ:", error);
+        writeLog("Không thể cập nhật nhiệm vụ!", "red");
+    });
 }
 
 function deleteQuest(id) { // FIX 2: Thêm hàm deleteQuest bị thiếu
-    quests = quests.filter(q => q.id !== id);
-    saveAndRender();
+    fetch(`/api/quests/${id}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        quests = quests.filter(q => q.id !== id);
+        loadQuestsFromServer(); // Đồng bộ lại danh sách nhiệm vụ từ Server
+        writeLog("Nhiệm vụ đã được xóa!", "#e74c3c");
+    })
+    .catch(error => {
+        console.error("Lỗi khi xóa nhiệm vụ:", error);
+        writeLog("Không thể xóa nhiệm vụ!", "red");
+    });
+}
+
+function loadQuestsFromServer() {
+    fetch('/api/quests')
+        .then(response => {
+            return response.json();
+        })
+        .then(data => {
+            quests = data; // Cập nhật mảng quests từ dữ liệu nhận được
+            updateUI();
+            saveAndRender();
+            writeLog("Danh sách nhiệm vụ đã được đồng bộ với Server.", "#3498db");
+        })
+        .catch(error => {
+            console.error("Lỗi khi lấy danh sách nhiệm vụ từ Server:", error);
+            writeLog("Không thể đồng bộ danh sách nhiệm vụ với Server!", "red");
+        });
 }
 
 function saveAndRender() {
-    localStorage.setItem('myQuests', JSON.stringify(quests));
+
     questList.innerHTML = "";
 
     quests.forEach(function(quest) {
@@ -414,5 +459,5 @@ registerForm.addEventListener("submit", function(event) {
 // ==========================================
 // 6. KHỞI CHẠY (Initialization)
 // ==========================================
-saveAndRender();
+loadQuestsFromServer(); // Gọi API lấy danh sách nhiệm vụ từ Server
 updateUI();

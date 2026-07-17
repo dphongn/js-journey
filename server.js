@@ -1,3 +1,5 @@
+let quests = []
+
 // Khai báo sử dụng thư viện Express
 const express = require('express');
 const app = express();
@@ -6,6 +8,37 @@ const PORT = 3000;
 // 1. Phục vụ các file tĩnh (Static Files)
 // Lệnh này nói với Server: "Nếu ai đó truy cập web, hãy gửi toàn bộ file trong thư mục 'public' cho họ"
 app.use(express.static('public'));
+app.use(express.json()); // Middleware để phân tích JSON từ body của request
+
+// API lấy danh sách 
+app.get('/api/quests', (req, res) => {
+    res.json(quests);
+});
+
+app.post('/api/quests', (req, res) => {
+    const newQuest = req.body;
+    quests.push(newQuest);
+    res.status(201).json(newQuest);
+}); 
+
+app.put('/api/quests/:id', (req, res) => {
+    const questId = Number(req.params.id);
+    const quest = quests.find(quest => quest.id === questId);
+
+    if (quest) {
+        quest.completed = !quest.completed; // Đảo ngược trạng thái completed
+        res.json(quest);
+    } else {
+        res.status(404).json({ message: 'Nhiệm vụ không tồn tại!' });
+    }
+});
+
+app.delete('/api/quests/:id', (req, res) => {
+    const questId = Number(req.params.id);
+    quests = quests.filter(quest => quest.id !== questId);
+    res.json({ success: true, message: 'Nhiệm vụ đã được xóa!' });
+
+});
 
 // 2. TẠO API TRÊN SERVER (Backend API Endpoint)
 // Khi Client gọi tới đường dẫn '/api/monster', server sẽ chạy hàm này
