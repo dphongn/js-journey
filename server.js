@@ -1,7 +1,10 @@
 require('dotenv').config();
 
+
 // Khai báo sử dụng thư viện Express
 const express = require('express');
+const https = require('https');
+const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -32,8 +35,12 @@ app.get('/api/monster', (req, res) => {
     // Trả dữ liệu về cho Client dưới định dạng JSON
     res.json(selectedMonster);
 });
-
+const sslOptions = {
+    key: fs.readFileSync('./certs/key.pem'),
+    cert: fs.readFileSync('./certs/cert.pem')
+};
+const server = https.createServer(sslOptions, app);
 // 3. Khởi động Server, lắng nghe tại cổng 3000
-app.listen(PORT, () => {
-    console.log(`🚀 Server game đang chạy tại địa chỉ: http://localhost:${PORT}`);
+server.listen(PORT, () => {
+    console.log(`🚀 Server game đang chạy tại địa chỉ: https://localhost:${PORT}`);
 });

@@ -1,2 +1,14 @@
+# Chặn thư viện Node.js (quá nặng, người khác clone về sẽ tự chạy npm install)
 node_modules/
+
+# Chặn thông tin cấu hình và mật khẩu Database
 .env
+
+# Chặn khóa bảo mật HTTPS
+certs/
+*.pem
+*.key
+
+# Chặn các file rác của hệ điều hành
+.DS_Store
+Thumbs.db
