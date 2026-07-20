@@ -26,6 +26,7 @@ const statsModal = document.getElementById("stats-modal");
 const btnOpenStats = document.getElementById("btn-open-stats");
 const closeModalSpan = document.querySelector(".close-modal");
 
+
 // Các thẻ hiển thị chỉ số bên trong Modal
 const statHp = document.getElementById("stat-hp");
 const statPoison = document.getElementById("stat-poison");
@@ -41,9 +42,20 @@ const errEmail = document.getElementById("err-email");
 const errCode = document.getElementById("err-code");
 const btnFetchMonster = document.getElementById("btn-fetch-monster");
 
+const loginForm = document.getElementById("login-form");
+const loginName = document.getElementById("login-name");
+const loginCode = document.getElementById("login-code");
 // ==========================================
 // 2. CÁC HÀM TIỆN ÍCH (Utilities)
 // ==========================================
+
+function getAuthHeader() {
+    const token = localStorage.getItem('knight_token'); // Lấy token từ localStorage
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '' 
+    }
+}
 
 // Sự kiện click sẽ gọi API
 btnFetchMonster.addEventListener("click", function() {
@@ -128,58 +140,55 @@ function updateUI() {
 // 4. LOGIC NHIỆM VỤ (Quest Logic - State Driven)
 // ==========================================
 function addQuest(taskText) {
-    const newQuest = {
-        id: Date.now(), // Dùng timestamp làm ID duy nhất
-        text: taskText,
-        completed: false
-    };
+    const newQuest = { text: taskText};
 
     fetch('/api/quests', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeader(),
         body: JSON.stringify(newQuest)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (response.status === 401 || response.status === 403) {
+            throw new Error("Chưa đăng nhập!");
+        }
+        return response.json();
+    })
     .then(data => {
         quests.push(data);
         saveAndRender();
+        writeLog(`Nhiệm vụ mới đã được thêm: "${taskText}"`, "#f1c40f");
     })
     .catch(error => {
-        console.error("Lỗi khi thêm nhiệm vụ:", error);
-        writeLog("Không thể thêm nhiệm vụ!", "red");
+        writeLog(error.message, "red");
     });
 }
 
 function toggleQuest(id) {
     fetch(`/api/quests/${id}`, {
-        method: 'PUT'
+        method: 'PUT',
+        headers: getAuthHeader()
     })
     .then(response => response.json())
     .then(updatedQuest => {
         if (updatedQuest.completed) {
-            if (hp > 0) {
-                hp += 10; // Thưởng 10 HP khi hoàn thành nhiệm vụ
-                writeLog(`Hoàn thành nhiệm vụ! Nhận thưởng 10 HP ❤️`, "#2ecc71");
-            }
+            hp = Math.min(hp + 10, MAX_HP); // Thưởng 10 HP khi hoàn thành nhiệm vụ
         } else {
-            if (hp > 0) {
-                hp -= 10;
-                writeLog(`Nhiệm vụ bị hủy! Mất 10 HP 💔`, "#ff7675");
-            }
+            hp -= 10;
+            writeLog("Bỏ nhiệm vụ đã hoàn thành, mất 10 HP!", "#e74c3c");
         }
 
         updateUI();
         loadQuestsFromServer(); // Đồng bộ lại danh sách nhiệm vụ từ Server
     })
     .catch(error => {
-        console.error("Lỗi khi cập nhật nhiệm vụ:", error);
-        writeLog("Không thể cập nhật nhiệm vụ!", "red");
+        writeLog('Nhiệm vụ bị hủy, mất 10 HP!', "#e74c3c");
     });
 }
 
 function deleteQuest(id) { // FIX 2: Thêm hàm deleteQuest bị thiếu
     fetch(`/api/quests/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeader()
     })
     .then(response => response.json())
     .then(data => {
@@ -188,26 +197,36 @@ function deleteQuest(id) { // FIX 2: Thêm hàm deleteQuest bị thiếu
         writeLog("Nhiệm vụ đã được xóa!", "#e74c3c");
     })
     .catch(error => {
-        console.error("Lỗi khi xóa nhiệm vụ:", error);
         writeLog("Không thể xóa nhiệm vụ!", "red");
     });
 }
 
 function loadQuestsFromServer() {
-    fetch('/api/quests')
-        .then(response => {
-            return response.json();
-        })
-        .then(data => {
-            quests = data; // Cập nhật mảng quests từ dữ liệu nhận được
-            updateUI();
-            saveAndRender();
-            writeLog("Danh sách nhiệm vụ đã được đồng bộ với Server.", "#3498db");
-        })
-        .catch(error => {
-            console.error("Lỗi khi lấy danh sách nhiệm vụ từ Server:", error);
-            writeLog("Không thể đồng bộ danh sách nhiệm vụ với Server!", "red");
-        });
+    const token = localStorage.getItem('knight_token');
+    if (!token) {
+        writeLog("Đăng nhập để tải nhiệm vụ!", "red");
+        return;
+    }
+
+    fetch('/api/quests', {
+        headers: getAuthHeader()
+    })
+    .then(response => {
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('knight_token'); // Xóa token nếu không hợp lệ
+            throw new Error("Thẻ bài đã hết hạn! Hãy đăng nhập lại.");
+        }
+        return response.json();
+    })
+    .then(data => {
+        quests = data; // Cập nhật mảng quests từ dữ liệu nhận được
+        updateUI();
+        saveAndRender();
+        writeLog("Danh sách nhiệm vụ đã được đồng bộ với Server.", "#3498db");
+    })
+    .catch(error => {
+        writeLog(error.message, "red");
+    });
 }
 
 function saveAndRender() {
@@ -385,77 +404,57 @@ function validateCode(code) {
 
 // Bắt sự kiện Submit Form
 registerForm.addEventListener("submit", function(event) {
-    // CHÌA KHÓA: Chặn không cho trang web tải lại khi bấm Submit
     event.preventDefault();
+    const username = regName.value.trim();
+    const password = regCode.value; // Server chỉ cần username và password
 
-    let isValid = true;
-
-    // 1. Xác thực Tên Hiệp Sĩ
-    const nameValue = regName.value.trim();
-    if (nameValue === "") {
-        errName.innerText = "Tên hiệp sĩ không được để trống!";
-        regName.className = "input-error";
-        isValid = false;
-    } else if (nameValue.length < 3 || nameValue.length > 15) {
-        errName.innerText = "Tên phải từ 3 đến 15 ký tự!";
-        regName.className = "input-error";
-        isValid = false;
-    } else {
-        errName.innerText = "";
-        regName.className = "input-success";
+    if(username.length < 3 || password.length < 6) {
+        return writeLog("Lỗi: Tên >= 3 ký tự, Mã mật đạo >= 6 ký tự!", "red");
     }
 
-    // 2. Xác thực Email
-    const emailValue = regEmail.value.trim();
-    if (emailValue === "") {
-        errEmail.innerText = "Email không được để trống!";
-        regEmail.className = "input-error";
-        isValid = false;
-    } else if (!validateEmail(emailValue)) {
-        errEmail.innerText = "Định dạng email không hợp lệ!";
-        regEmail.className = "input-error";
-        isValid = false;
-    } else {
-        errEmail.innerText = "";
-        regEmail.className = "input-success";
-    }
-
-    // 3. Xác thực Mã mật đạo
-    const codeValue = regCode.value;
-    if (codeValue === "") {
-        errCode.innerText = "Mã mật đạo không được để trống!";
-        regCode.className = "input-error";
-        isValid = false;
-    } else if (!validateCode(codeValue)) {
-        errCode.innerText = "Mã phải từ 6 ký tự trở lên, gồm cả chữ và số!";
-        regCode.className = "input-error";
-        isValid = false;
-    } else {
-        errCode.innerText = "";
-        regCode.className = "input-success";
-    }
-
-    // NẾU TẤT CẢ THÔNG TIN HỢP LỆ (Form validated successfully)
-    if (isValid) {
-        // Đổi tên tiêu đề game thành tên người chơi vừa đăng ký
-        const title = document.querySelector("h1");
-        title.innerText = `🗡️ Hiệp Sĩ ${nameValue} 🛡️`;
-
-        // Thưởng nóng 100 HP cho hiệp sĩ
-        hp = MAX_HP; 
-        updateUI();
-
-        writeLog(`Danh tính xác thực! Chào mừng Hiệp Sĩ ${nameValue} gia nhập lực lượng! ❤️`, "#2ecc71");
-
-        // Reset lại form và xóa các class báo xanh/đỏ
+    fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message) throw new Error(data.message);
+        writeLog(`Đăng ký thành công! Hãy Đăng nhập, Hiệp sĩ ${data.username}`, "#2ecc71");
         registerForm.reset();
-        regName.className = "";
-        regEmail.className = "";
-        regCode.className = "";
-    } else {
-        writeLog("Xác thực thất bại! Hãy kiểm tra lại các thông tin màu đỏ.", "#ff7675");
-    }
+    })
+    .catch(err => writeLog(err.message, "red"));
 });
+
+loginForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+    const username = loginName.value.trim();
+    const password = loginCode.value;
+
+    fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message) throw new Error(data.message);
+        
+        // 1. Cất Thẻ bài (Token) vào Hành trang (localStorage)
+        localStorage.setItem('knight_token', data.token);
+        
+        // 2. Đổi tên hiển thị
+        document.querySelector("h1").innerText = `🗡️ Hiệp Sĩ ${username} 🛡️`;
+        
+        writeLog(`Đăng nhập thành công! Cấp phát Thẻ bài an ninh.`, "#3498db");
+        loginForm.reset();
+        
+        // 3. Tải ngay nhiệm vụ của Hiệp sĩ này
+        loadQuestsFromServer();
+    })
+    .catch(err => writeLog(err.message, "red"));
+});
+
 // ==========================================
 // 6. KHỞI CHẠY (Initialization)
 // ==========================================
